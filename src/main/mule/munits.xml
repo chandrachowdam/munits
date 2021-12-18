@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c4d3bb93-6689-4799-88a7-d7202e950713" >
+		<http:listener-connection host="0.0.0.0" port="8083" />
+	</http:listener-config>
+	<flow name="munitsFlow" doc:id="e8cf545c-d739-4702-bfc7-59e8ef48d942" >
+		<http:listener doc:name="Listener" doc:id="daaa532b-be10-4550-8a3d-1b53e5d09726" config-ref="HTTP_Listener_config" path="/munit"/>
+		<logger level="INFO" doc:name="Logger" doc:id="a8367789-2a60-4c2f-ab7d-ac38e528b710" message="flow started"/>
+		<set-variable value='#[attributes.queryParams.destination default ""]' doc:name="Set Variable" doc:id="89cd1990-2a85-4215-af18-849d54dd5ae2" variableName="destination"/>
+		<http:request method="GET" doc:name="Request" doc:id="789781c4-9d81-4e3b-b0db-2e310e6710b1" url="http://mu.mulesoft-training.com/essentials/united/flights/{destination}" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"destination" : vars.destination
+}]]]></http:uri-params>
+		</http:request>
+		<choice doc:name="Choice" doc:id="a782f792-6b6d-4b9e-9f23-8327f58639ea" >
+			<when expression='#[payload.flights.destination[0] == "SFO"]'>
+				<ee:transform doc:name="Transform Message" doc:id="b26b1f92-228c-42da-bd11-47a7e28fd321">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.flights map $]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="750dda9a-1c12-4492-94e6-5d9903b85da1" message="destination is not equal to SFO"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

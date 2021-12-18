@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<munit:config name="munits-test-suite.xml" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="419fe7fc-cf7b-4ede-9b6e-41e3c9de767b" >
+		<http:request-connection host="localhost" port="8083" />
+	</http:request-config>
+	<munit:test name="munits-test-suite-munitsFlowTest" doc:id="25e160d4-ccb4-41d5-90e8-3b52cd3b0bae" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="af0faf03-fb85-4e0d-8bbf-944023f1ef6b" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="789781c4-9d81-4e3b-b0db-2e310e6710b1" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/flightsResponse.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="887e75ab-fc9f-40ff-a755-d7e6bade2a1b" >
+				<munit:attributes value='#[{&#10;	"queryParams": {&#10;		"destination": "SFO",&#10;		"price": "400"&#10;	}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to munitsFlow" doc:id="82bfe3eb-e762-4160-9a9c-5ca0081cfa00" name="munitsFlow"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="munits-test-suite-munitsFlowTest1" doc:id="308662e7-0772-459b-8739-cf2bae3fc813" description="Test">
+		<munit:enable-flow-sources >
+			<munit:enable-flow-source value="munitsFlow" />
+		</munit:enable-flow-sources>
+		<munit:execution >
+			<http:request method="GET" doc:name="Request" doc:id="fd84ede2-218d-4157-a389-1a17819f71f7" config-ref="HTTP_Request_configuration" path="/munit">
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"destination" : "LAX"
+}]]]></http:query-params>
+			</http:request>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="munits-test-suite-munitsFlowTest2" doc:id="f2b6be9f-68a6-4ebb-8cff-4cfb6b8313da" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="10f34b1a-d249-4c77-8e50-3175324b982f" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="789781c4-9d81-4e3b-b0db-2e310e6710b1" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:error typeId="HTTP:BAD_REQUEST" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="9157c184-4728-474b-b9ee-847c59a803cf" >
+				<munit:attributes value='#[{&#10;	"queryParams": {&#10;		"destination": "SFO",&#10;		"price": "400"&#10;	}&#10;}]' />
+			</munit:set-event>
+			<try doc:name="Try" doc:id="3783b953-9d64-4ef9-a1db-f2502f72fa58" >
+				<flow-ref doc:name="Flow-ref to munitsFlow" doc:id="47f16fcd-8f61-40b8-8ba8-8cdf062f3459" name="munitsFlow" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="62740031-d34a-4427-a362-219f70607e10" >
+						<logger level="INFO" doc:name="Logger" doc:id="afc0a894-08d1-4e0a-937c-ed2e9c83a2b4" message="error"/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="munits-test-suite-munitsFlowTest3" doc:id="2deba441-ba85-4293-ad82-26cfe6ab02ab" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="d748f547-a1ba-43d2-9458-984bba0be20c" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="789781c4-9d81-4e3b-b0db-2e310e6710b1" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('examples/sfoFlightsResponse.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="88352d52-54ac-4c59-b186-67bcaa8643ff" >
+				<munit:attributes value='#[{&#10;	"queryParams": {&#10;		"destination": "SFO",&#10;		"price": "400"&#10;	}&#10;}]' />
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to munitsFlow" doc:id="01b2b08c-5bb4-44d0-95fd-57acca9226c6" name="munitsFlow"/>
+		</munit:execution>
+	</munit:test>
+
+
+</mule>
